@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Expense Tracker</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f2f2f2;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 800px;
+      margin: 30px auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h1 {
+      text-align: center;
+    }
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    .form-grid label {
+      margin-top: 10px;
+    }
+    .form-grid input {
+      padding: 8px;
+      width: 100%;
+      box-sizing: border-box;
+    }
+    .form-grid button {
+      grid-column: span 2;
+      padding: 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .form-grid button:hover {
+      background-color: #0056b3;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #ddd;
+      text-align: center;
+    }
+    tr.selected {
+      background-color: #cde3ff;
+    }
+    .bottom-panel {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 20px;
+    }
+    .budget-label {
+      font-weight: bold;
+    }
+    .delete-btn {
+      padding: 8px 12px;
+      background: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .delete-btn:hover {
+      background: #a71d2a;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Expense Tracker</h1>
+    <div class="form-grid">
+      <label>Total Budget: Rs.</label>
+      <input type="text" id="budgetInput" placeholder="Enter total budget" />
+      <button id="setBudgetBtn">Set Budget</button>
+
+      <label>Category:</label>
+      <input type="text" id="categoryInput" placeholder="e.g. Food, Rent" />
+
+      <label>Amount: Rs.</label>
+      <input type="text" id="amountInput" placeholder="Enter amount" />
+
+      <label>Date (dd-mm-yyyy):</label>
+      <input type="text" id="dateInput" placeholder="e.g. 19-07-2025" />
+
+      <button id="addExpenseBtn">Add Expense</button>
+    </div>
+
+    <table id="expenseTable">
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Amount</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div class="bottom-panel">
+      <span class="budget-label" id="remainingBudget">Remaining Budget: Rs. 0.0</span>
+      <button class="delete-btn" id="deleteExpenseBtn">Delete Expense</button>
+    </div>
+  </div>
+
+  <script>
+    let totalBudget = 0;
+    let remainingBudget = 0;
+
+    const budgetInput = document.getElementById('budgetInput');
+    const categoryInput = document.getElementById('categoryInput');
+    const amountInput = document.getElementById('amountInput');
+    const dateInput = document.getElementById('dateInput');
+    const remainingBudgetDisplay = document.getElementById('remainingBudget');
+    const expenseTableBody = document.querySelector('#expenseTable tbody');
+
+    let selectedRow = null;
+
+    document.getElementById('setBudgetBtn').addEventListener('click', () => {
+      const value = parseFloat(budgetInput.value);
+      if (isNaN(value) || value <= 0) {
+        alert("Please enter a valid budget amount.");
+        return;
+      }
+      totalBudget = value;
+      remainingBudget = value;
+      updateBudgetLabel();
+    });
+
+    document.getElementById('addExpenseBtn').addEventListener('click', () => {
+      const category = categoryInput.value.trim();
+      const amount = parseFloat(amountInput.value.trim());
+      const date = dateInput.value.trim();
+
+      if (!category || isNaN(amount) || !date) {
+        alert("Please fill all fields correctly.");
+        return;
+      }
+
+      if (amount > remainingBudget) {
+        alert("Warning: Expense exceeds remaining budget!");
+        return;
+      }
+
+      const row = expenseTableBody.insertRow();
+      row.innerHTML = `
+        <td>${category}</td>
+        <td>${amount.toFixed(2)}</td>
+        <td>${date}</td>
+      `;
+
+      row.addEventListener('click', () => {
+        if (selectedRow) selectedRow.classList.remove('selected');
+        row.classList.add('selected');
+        selectedRow = row;
+      });
+
+      remainingBudget -= amount;
+      updateBudgetLabel();
+
+      categoryInput.value = '';
+      amountInput.value = '';
+      dateInput.value = '';
+    });
+
+    document.getElementById('deleteExpenseBtn').addEventListener('click', () => {
+      if (!selectedRow) {
+        alert("Please select a row to delete.");
+        return;
+      }
+
+      const amount = parseFloat(selectedRow.cells[1].innerText);
+      remainingBudget += amount;
+      updateBudgetLabel();
+
+      expenseTableBody.removeChild(selectedRow);
+      selectedRow = null;
+    });
+
+    function updateBudgetLabel() {
+      remainingBudgetDisplay.textContent = `Remaining Budget: Rs. ${remainingBudget.toFixed(2)}`;
+    }
+  </script>
+</body>
+</html>
